@@ -1,11 +1,11 @@
 "use client";
 import clsx from "clsx";
+import { ButtonHTMLAttributes } from "react";
 type ButtonVariants = "primary" | "secondary" | "tertiary";
-interface ButtonProps {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size: "small" | "medium" | "large";
   variant: ButtonVariants;
   text: string;
-  onClick: () => void;
 }
 const ButtonSizes = {
   small: "px-2 py-1 text-sm",
@@ -19,15 +19,22 @@ const ButtonVariantsStyles = {
     "bg-transparent text-blue-500 hover:bg-blue-600 border border-blue-500",
 };
 
-export default function Button(props: ButtonProps) {
+export default function Button({
+  size,
+  variant,
+  text,
+  className,
+  ...props
+}: ButtonProps) {
   const baseStyles = clsx(
-    "rounded",
-    ButtonSizes[props.size],
-    ButtonVariantsStyles[props.variant]
+    "rounded transition-colors duration-200",
+    ButtonSizes[size],
+    ButtonVariantsStyles[variant],
+    className
   );
   return (
-    <button className={baseStyles} onClick={props.onClick}>
-      {props.text}
+    <button className={baseStyles} {...props}>
+      {text}
     </button>
   );
 }
