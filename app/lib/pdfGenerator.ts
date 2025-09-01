@@ -84,17 +84,17 @@ export async function generateQuotePDF(data: PdfData) {
     const rightX = 350;
 
 
-    const drawLine = (
-        text: string,
-        x: number,
-        size = 11,
-        offset = 15,
-        font = fontRegular,
-        color = rgb(0, 0, 0)
-    ) => {
-        page.drawText(text, { x, y, size, font, color });
-        y -= offset;
-    };
+    // const drawLine = (
+    //     text: string,
+    //     x: number,
+    //     size = 11,
+    //     offset = 15,
+    //     font = fontRegular,
+    //     color = rgb(0, 0, 0)
+    // ) => {
+    //     page.drawText(text, { x, y, size, font, color });
+    //     y -= offset;
+    // };
 
 
     // --- NEW: Draw Quote Info at top right BEFORE other content ---
@@ -115,7 +115,7 @@ export async function generateQuotePDF(data: PdfData) {
     });
     y -= 40;
     // Company Info
-    page.drawText("Hidden Spot", { x: leftX, y, size: 12, font: fontRegular });
+    page.drawText("Hidden Spot", { x: leftX, y, size: 12, font: fontBold });
     page.drawText("Catering Services & Event Supplies", { x: leftX, y: y - 15, size: 10, font: fontRegular });
     page.drawText("All your catering needs - in one!", { x: leftX, y: y - 30, size: 10, font: fontRegular });
 

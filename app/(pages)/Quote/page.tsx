@@ -146,7 +146,7 @@ export default function Quote() {
   const handleFormDataSubmit: SubmitHandler<FormData> = async (formData) => {
     try {
       const res = await axios.post(
-      "http://localhost:3000/api/v1/quote",
+      "/api/v1/quote",
       formData
     );
     // console.log(res.data.data)
