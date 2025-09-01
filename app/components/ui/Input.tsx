@@ -117,7 +117,7 @@ export function Select({
 export function CheckboxGroup({
   label,
   options,
-  selectedValues,
+  selectedValues = [],
   onChange,
   error,
   ...props

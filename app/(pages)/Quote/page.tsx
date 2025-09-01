@@ -3,23 +3,34 @@ import Button from "@/app/components/ui/Button";
 import {
   CheckboxGroup,
   Input,
+  RadioGroup,
   Select,
   Textarea,
 } from "@/app/components/ui/Input";
-// import axios from "axios";
+import { getDurationInHours } from "@/app/middleware/EventDuration";
+// import { getCurrentTime } from "@/app/middleware/GetCurrentTime";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 
 // event types
 // create form data
 interface FormData {
+  serviceType: "event" | "catering" | "";
   fullName: string;
   email: string;
   phone: string;
-  eventDate: Date;
+
+  // event form data
+  eventDate: string;
+  eventStartTime: string;
+  eventEndTime: string;
   eventLocation: string;
   eventType: string;
   numberOfGuests: number;
   eventDuration: number;
+  beverageType: string[];
+
   // sevice form data
   mealType: string[];
   estimatedBudget?: number;
@@ -27,7 +38,15 @@ interface FormData {
   // cuisinePreferences: string[];
   // dietaryRestrictions: string[];
   // additionalServices: string[];
-  // beverageOptions: string[];
+
+  // catering data
+  cateringType: string;
+  menuSelection: string[];
+  dietaryRestriction: string[];
+  serviceProvideType: "delivery" | "onsite" | "fullService" | "";
+  setUpRequirement: string[];
+  mealTime: string;
+  addOns: string[];
 }
 export default function Quote() {
   const {
@@ -35,16 +54,29 @@ export default function Quote() {
     handleSubmit,
     formState: { errors },
     control,
+    watch,
+    setValue,
   } = useForm<FormData>({
     defaultValues: {
+      serviceType: "",
+      numberOfGuests: 1,
+      // eventDate: new Date().toISOString().split("T")[0],
       mealType: [],
-      // cuisinePreferences: [],
-      // dietaryRestrictions: [],
-      // additionalServices: [],
-      // beverageOptions: [],
+      beverageType: [],
+      // eventStartTime: getCurrentTime(),
+      // eventEndTime: getCurrentTime(),
+      menuSelection: [],
+      dietaryRestriction: [],
+      serviceProvideType: "",
+      setUpRequirement: [],
+      addOns: [],
     },
   });
 
+  const serviceTypeOptions = [
+    { label: "Event", value: "event" },
+    { label: "Catering", value: "catering" },
+  ];
   // for event types
   const eventTypes = [
     { label: "Wedding", value: "wedding" },
@@ -59,51 +91,370 @@ export default function Quote() {
     { label: "Plated Dinner", value: "plated" },
     { label: "Cocktail", value: "cocktail" },
   ];
+  // beverage options
+  const beverageTypeOptions = [
+    { label: "Tea", value: "tea" },
+    { label: "Coffee", value: "coffee" },
+    { label: "Alcohol", value: "alcohol" },
+    { label: "Juice", value: "juice" },
+  ];
 
-  // cuisine options
-  // const cuisineOptions = [
-  //   { label: "Italian", value: "italian" },
-  //   { label: "Indian", value: "indian" },
-  //   { label: "Vegan", value: "vegan" },
-  //   { label: "Gluten-Free", value: "glutenFree" },
-  // ];
+  // catering service
+  const cateringTypeOptions = [
+    { label: "Buffet", value: "buffet" },
+    { label: "Plated", value: "plated" },
+    { label: "Family Style", value: "family" },
+  ];
 
-  // // dietary options
-  // const dietaryOptions = [
-  //   { label: "Vegetarian", value: "vegetarian" },
-  //   { label: "Vegan", value: "vegan" },
-  //   { label: "Gluten-Free", value: "glutenFree" },
-  //   { label: "Allergies", value: "allergies" },
-  // ];
+  const menuOptions = [
+    { label: "Italian Set", value: "italian" },
+    { label: "Indian Combo", value: "indian" },
+    { label: "Asian Fusion", value: "asian" },
+  ];
 
-  // // sevice options
-  // const serviceOptions = [
-  //   { label: "Waitstaff", value: "waitstaff" },
-  //   { label: "Bar Service", value: "bar" },
-  //   { label: "Table Setup", value: "setup" },
-  //   { label: "Decorations", value: "decorations" },
-  // ];
+  const dietaryRestrictionOptions = [
+    { label: "Vegan", value: "vegan" },
+    { label: "Halal", value: "halal" },
+    { label: "Allergies", value: "allergies" },
+  ];
 
-  // // beverage options
-  // const beverageOptions = [
-  //   { label: "Alcoholic", value: "alcoholic" },
-  //   { label: "Non-Alcoholic", value: "nonAlcoholic" },
-  //   { label: "Coffee/Tea", value: "coffeeTea" },
-  //   { label: "Open Bar", value: "openBar" },
-  // ];
+  const serviceProvideOptions = [
+    { label: "Delivery", value: "delivery" },
+    { label: "Onsite Staff", value: "onsite" },
+    { label: "Full Service", value: "fullService" },
+  ];
+
+  const setupOptions = [
+    { label: "Tableware", value: "tableware" },
+    { label: "Linens", value: "linens" },
+    { label: "Cutlery", value: "cutlery" },
+  ];
+
+  const mealTimes = [
+    { label: "Breakfast", value: "breakfast" },
+    { label: "Lunch", value: "lunch" },
+    { label: "Dinner", value: "dinner" },
+  ];
+
+  const addOnOptions = [
+    { label: "Desserts", value: "desserts" },
+    { label: "Snacks", value: "snacks" },
+    { label: "Appetizers", value: "appetizers" },
+  ];
+
+  // Watch serviceType for dynamic rendering
+  const serviceType = watch("serviceType");
+  // watch for event date/starttime/endtime for showing event start and end time
+  const eventDate = watch("eventDate");
+  const eventStartTime = watch("eventStartTime");
+  const eventEndTime = watch("eventEndTime");
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
 
   const handleFormDataSubmit: SubmitHandler<FormData> = async (formData) => {
-    // const res = await axios.post(
-    //   "http://localhost:3000/api/v1/quote",
-    //   formData
-    // );
-    console.log(formData);
+    try {
+      const res = await axios.post(
+      "http://localhost:3000/api/v1/quote",
+      formData
+    );
+    // console.log(res.data.data)
+    // console.log(res.data?.data.fullName)
+    // console.log(res.data.data.email)
+    // console.log()
+    setPdfBase64(res.data?.data?.pdfBase64)
+    
+    
+    } catch (error) {
+      
+    }
+    
+    
   };
+
+  // useeffect for event date, start time, and end time
+  useEffect(() => {
+    const now = new Date();
+
+    const date = now.toISOString().split("T")[0];
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const time = `${hours}:${minutes}`;
+
+    setValue("eventDate", date);
+    setValue("eventStartTime", time);
+    setValue("eventEndTime", time);
+  }, [setValue]);
+
+  // useeffect for calculating total duration when first component mounts
+  useEffect(() => {
+    if (eventStartTime && eventEndTime) {
+      const [startH, startM] = eventStartTime.split(":").map(Number);
+      const [endH, endM] = eventEndTime.split(":").map(Number);
+
+      const startTotal = startH * 60 + startM;
+      const endTotal = endH * 60 + endM;
+
+      let diff = endTotal - startTotal;
+      if (diff < 0) diff += 24 * 60; // handle overnight events
+
+      const duration = +(diff / 60).toFixed(2); // round to 2 decimal places
+      setValue("eventDuration", duration);
+    }
+  }, [eventStartTime, eventEndTime, setValue]);
+
+  //
+
   return (
     <>
+    {/* preview */}
+     {pdfBase64 && (
+        <div style={{ marginTop: "20px" }}>
+          <h2>PDF Preview:</h2>
+          <iframe
+            src={`data:application/pdf;base64,${pdfBase64}`}
+            width="100%"
+            height="600px"
+            title="PDF Preview"
+          />
+        </div>
+      )}
+
+
+
+      
       <div>
         <h1>Quotation Form</h1>
         <form action="" onSubmit={handleSubmit(handleFormDataSubmit)}>
+          {/* service type */}
+          <Controller
+            name="serviceType"
+            control={control}
+            rules={{ required: "Please select a service type" }}
+            render={({ field, fieldState }) => (
+              <RadioGroup
+                label="Service Type"
+                options={serviceTypeOptions}
+                selectedValue={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+
+          {/* render the dynamic fields for events */}
+          {serviceType === "event" && (
+            // all the inputs related to event only
+            <>
+              <Select
+                label="Event Type"
+                options={eventTypes}
+                {...register("eventType", {
+                  required: "Please select an event type",
+                })}
+                error={errors.eventType?.message}
+              />
+
+              {/* event date */}
+              <Input
+                label="Event Date"
+                {...register("eventDate", {
+                  required: "Event date and time is required",
+                })}
+                error={errors.eventDate?.message}
+                type="date"
+              />
+              {eventDate && (
+                <>
+                  <Input
+                    label="Event Start Time"
+                    {...register("eventStartTime", {
+                      required: "Event start time is required",
+                    })}
+                    error={errors.eventStartTime?.message}
+                    type="time"
+                  />
+                  <Input
+                    label="Event End Time"
+                    {...register("eventEndTime", {
+                      required: "Event end time is required",
+                    })}
+                    error={errors.eventEndTime?.message}
+                    type="time"
+                  />
+                </>
+              )}
+
+              {/* guest no. */}
+              <Input
+                label="Number of Guests"
+                type="number"
+                placeholder="100"
+                {...register("numberOfGuests", {
+                  required: "Number of guests is required",
+                  min: { value: 1, message: "At least 1 guest required" },
+                })}
+                error={errors.numberOfGuests?.message}
+              />
+
+              {/* <Input
+                label="Event Duration (hours)"
+                type="number"
+                placeholder="e.g., 4"
+                {...register("eventDuration", {
+                  required: "Event duration is required",
+                  min: { value: 1, message: "Minimum 1 hour" },
+                })}
+                error={errors.eventDuration?.message}
+              /> */}
+              {/* Show calculated duration (read-only) */}
+              {eventStartTime && eventEndTime && (
+                <>
+                  <Input
+                    label="Event Duration (hours)"
+                    type="number"
+                    value={watch("eventDuration") || ""}
+                    readOnly
+                  />
+                  <p className="text-sm text-gray-600">
+                    Duration: {getDurationInHours(eventStartTime, eventEndTime)}
+                  </p>
+                </>
+              )}
+
+              <Controller
+                name="beverageType"
+                control={control}
+                render={({ field }) => (
+                  <CheckboxGroup
+                    label="Beverage Type"
+                    options={beverageTypeOptions}
+                    selectedValues={field.value}
+                    onChange={(val, checked) => {
+                      field.onChange(
+                        checked
+                          ? [...field.value, val]
+                          : field.value.filter((v) => v !== val)
+                      );
+                    }}
+                  />
+                )}
+              />
+            </>
+          )}
+
+          {serviceType === "catering" && (
+            <>
+              {/* catering type */}
+              <Select
+                label="Catering Type"
+                options={cateringTypeOptions}
+                {...register("cateringType", {
+                  required: "Select a catering type",
+                })}
+                error={errors.cateringType?.message}
+              />
+              {/* meal styles */}
+              <Controller
+                name="menuSelection"
+                control={control}
+                render={({ field }) => (
+                  <CheckboxGroup
+                    label="Menu Selection"
+                    options={menuOptions}
+                    selectedValues={field.value}
+                    onChange={(val, checked) => {
+                      field.onChange(
+                        checked
+                          ? [...field.value, val]
+                          : field.value.filter((v) => v !== val)
+                      );
+                    }}
+                  />
+                )}
+              />
+              {/* dietary restriction */}
+              <Controller
+                name="dietaryRestriction"
+                control={control}
+                render={({ field }) => (
+                  <CheckboxGroup
+                    label="Dietary Restrictions"
+                    options={dietaryRestrictionOptions}
+                    selectedValues={field.value}
+                    onChange={(val, checked) => {
+                      field.onChange(
+                        checked
+                          ? [...field.value, val]
+                          : field.value.filter((v) => v !== val)
+                      );
+                    }}
+                  />
+                )}
+              />
+
+              {/* service provide options */}
+              <Controller
+                name="serviceProvideType"
+                control={control}
+                rules={{ required: "Please select a sevice provide option" }}
+                render={({ field, fieldState }) => (
+                  <RadioGroup
+                    label="Service Provide Type"
+                    options={serviceProvideOptions}
+                    selectedValue={field.value}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              {/* set up options options */}
+              <Controller
+                name="setUpRequirement"
+                control={control}
+                render={({ field }) => (
+                  <CheckboxGroup
+                    label="Set up options"
+                    selectedValues={field.value}
+                    options={setupOptions}
+                    onChange={(val, checked) => {
+                      field.onChange(
+                        checked
+                          ? [...field.value, val]
+                          : field.value.filter((v) => v !== val)
+                      );
+                    }}
+                  />
+                )}
+              />
+
+              {/* meal times */}
+              <Select
+                label="Meal Time"
+                options={mealTimes}
+                {...register("mealTime", { required: "Select a meal time" })}
+                error={errors.mealTime?.message}
+              />
+
+              {/* for addons */}
+              <Controller
+                name="addOns"
+                control={control}
+                render={({ field }) => (
+                  <CheckboxGroup
+                    label="Add-ons"
+                    options={addOnOptions}
+                    selectedValues={field.value}
+                    onChange={(val, checked) => {
+                      field.onChange(
+                        checked
+                          ? [...field.value, val]
+                          : field.value.filter((v) => v !== val)
+                      );
+                    }}
+                  />
+                )}
+              />
+            </>
+          )}
           {/* Start: client details like full name, email, phone */}
           {/* full name input field */}
           <Input
@@ -149,17 +500,6 @@ export default function Quote() {
           />
           {/* end: client details like full name, email, phone */}
 
-          {/* Start: Event details */}
-          {/* event date */}
-          <Input
-            label="Event Date"
-            {...register("eventDate", {
-              required: "Event date and time is required",
-            })}
-            error={errors.eventDate?.message}
-            type="datetime-local"
-          />
-
           {/* event location */}
           <Input
             label="Event Location/Address"
@@ -170,40 +510,6 @@ export default function Quote() {
             type="text"
             placeholder="123 quotation street, city"
           />
-
-          {/* event type */}
-          <Select
-            label="Event Type"
-            options={eventTypes}
-            {...register("eventType", {
-              required: "Please select an event type",
-            })}
-            error={errors.eventType?.message}
-          />
-
-          {/* guest field */}
-          <Input
-            label="Number of Guests"
-            type="number"
-            placeholder="100"
-            {...register("numberOfGuests", {
-              required: "Number of guests is required",
-              min: { value: 1, message: "At least 1 guest required" },
-            })}
-            error={errors.numberOfGuests?.message}
-          />
-          {/* event duration */}
-          <Input
-            label="Event Duration (hours)"
-            type="number"
-            placeholder="e.g., 4"
-            {...register("eventDuration", {
-              required: "Event duration is required",
-              min: { value: 1, message: "Minimum 1 hour" },
-            })}
-            error={errors.eventDuration?.message}
-          />
-          {/* End: Event details */}
 
           {/* Start: Meal/Menu details */}
           {/* meal type */}
