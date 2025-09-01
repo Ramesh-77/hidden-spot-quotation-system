@@ -8,15 +8,13 @@ import {
   Textarea,
 } from "@/app/components/ui/Input";
 import { getDurationInHours } from "@/app/middleware/EventDuration";
-// import { getCurrentTime } from "@/app/middleware/GetCurrentTime";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 
-// event types
-// create form data
 interface FormData {
   serviceType: "event" | "catering" | "";
+  // client data
   fullName: string;
   email: string;
   phone: string;
@@ -35,9 +33,6 @@ interface FormData {
   mealType: string[];
   estimatedBudget?: number;
   specialRequests?: string;
-  // cuisinePreferences: string[];
-  // dietaryRestrictions: string[];
-  // additionalServices: string[];
 
   // catering data
   cateringType: string;
@@ -60,11 +55,8 @@ export default function Quote() {
     defaultValues: {
       serviceType: "",
       numberOfGuests: 1,
-      // eventDate: new Date().toISOString().split("T")[0],
       mealType: [],
       beverageType: [],
-      // eventStartTime: getCurrentTime(),
-      // eventEndTime: getCurrentTime(),
       menuSelection: [],
       dietaryRestriction: [],
       serviceProvideType: "",
@@ -73,6 +65,7 @@ export default function Quote() {
     },
   });
 
+  // service type
   const serviceTypeOptions = [
     { label: "Event", value: "event" },
     { label: "Catering", value: "catering" },
@@ -161,6 +154,7 @@ export default function Quote() {
     // console.log(res.data.data.email)
     // console.log()
     setPdfBase64(res.data?.data?.pdfBase64)
+    console.log(res.data.data.pdfBase64)
     
     
     } catch (error) {
@@ -220,7 +214,7 @@ export default function Quote() {
 
 
 
-      
+
       <div>
         <h1>Quotation Form</h1>
         <form action="" onSubmit={handleSubmit(handleFormDataSubmit)}>
