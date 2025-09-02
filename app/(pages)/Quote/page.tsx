@@ -49,13 +49,18 @@ export default function Quote() {
   const handleFormDataSubmit: SubmitHandler<FormData> = async (formData) => {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/quote",
+        "/api/v1/quote",
         formData
       );
-      setPdfBase64(res.data?.data?.pdfBase64);
-      console.log(res.data.data.pdfBase64);
+      const pdfBase64 = res.data?.data?.pdfBase64;
+      if (pdfBase64) {
+        setPdfBase64(res.data?.data?.pdfBase64);
+        console.log(res.data.data.pdfBase64);
+      } else {
+        console.warn("No PDF base64 returned from server.");
+      }
     } catch (error) {
-      console.log(error);
+      console.log("Failed to submit form:", error);
     }
   };
 
@@ -90,7 +95,7 @@ export default function Quote() {
   }, [eventStartTime, eventEndTime, setValue]);
 
   //
-   const handlePreviewClick = () => {
+  const handlePreviewClick = () => {
     if (!pdfBase64) {
       alert("Please generate the quote first by submitting the form.");
       return;
@@ -221,14 +226,14 @@ export default function Quote() {
             size="medium"
             variant="primary"
           />
-           {/* Preview PDF button */}
-        <Button
-          variant="secondary"
-          text="Preview"
-          size="medium"
-          className="ms-5"
-          onClick={handlePreviewClick}
-        />
+          {/* Preview PDF button */}
+          <Button
+            variant="secondary"
+            text="Preview"
+            size="medium"
+            className="ms-5"
+            onClick={handlePreviewClick}
+          />
         </form>
       </div>
     </>
