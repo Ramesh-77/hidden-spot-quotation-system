@@ -99,6 +99,8 @@ export default function Quote() {
     setValue("eventEndTime", time);
   }, [setValue]);
 
+  console.log("step count: ", step)
+
   // useeffect for calculating total duration when first component mounts
   useEffect(() => {
     if (eventStartTime && eventEndTime) {
@@ -142,7 +144,6 @@ export default function Quote() {
       )} */}
 
       <div>
-        <h1>Quotation Form</h1>
         <form
           action=""
           onSubmit={handleSubmit(step === 2 ? handleFormDataSubmit : onNext)}
@@ -276,11 +277,14 @@ export default function Quote() {
           {/* Navigation */}
           <div className="mt-4 flex gap-2">
             {step > 0 && (
-              <button type="button" onClick={onBack}>
-                Back
-              </button>
+              <Button type="button"
+                variant="secondary"
+                text="Back" size="medium" onClick={onBack} />
+               
             )}
-            {step < 2 && <button type="submit">Next</button>}
+            {step < 2 && <Button type="submit"
+                variant="primary"
+                text="Next" size="medium" />}
           </div>
         </form>
       </div>
