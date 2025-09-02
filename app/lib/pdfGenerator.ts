@@ -73,7 +73,7 @@ export async function generateQuotePDF(data: PdfData) {
     // Draw the logo
     page.drawImage(logoImage, {
         x: 50,      // adjust X position
-        y: height - 60, // adjust Y position
+        y: height - 90, // adjust Y position
         width: logoDims.width,
         height: logoDims.height,
     });
@@ -156,7 +156,7 @@ export async function generateQuotePDF(data: PdfData) {
         serviceY -= 15;
         page.drawText(`Event Venue: ${data.eventLocation}`, { x: 350, y: serviceY, size: 11, font: fontRegular });
         serviceY -= 15;
-        page.drawText(`Guests: ${data.numberOfGuests}`, { x: 350, y: serviceY, size: 11, font: fontRegular });
+        page.drawText(`Guest Count: ${data.numberOfGuests}`, { x: 350, y: serviceY, size: 11, font: fontRegular });
         serviceY -= 15;
         page.drawText(`Duration: ${data.eventDuration} hours`, { x: 350, y: serviceY, size: 11, font: fontRegular });
         serviceY -= 15;

@@ -1,13 +1,10 @@
 "use client";
-import Button from "./components/ui/Button";
+import Quote from "./(pages)/Quote/page";
 
 export default function Home() {
-  const handleClick = () => {
-    console.log("object");
-  };
   return (
     <>
-      <Button text="Submit" size="medium" variant="primary" onClick={handleClick} />
+      <Quote />
     </>
   );
 }
