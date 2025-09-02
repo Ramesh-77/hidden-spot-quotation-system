@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function PDFPreviewPage() {
@@ -17,7 +18,7 @@ export default function PDFPreviewPage() {
       <div style={{ padding: "20px" }}>
         <h2>No PDF Found</h2>
         <p>The PDF data is missing or the session has expired.</p>
-        <a href="/" className="text-blue-500 underline">← Go back to the form</a>
+        <Link href="/" className="text-blue-500 underline">← Go back to the form</Link>
       </div>
     );
   }
