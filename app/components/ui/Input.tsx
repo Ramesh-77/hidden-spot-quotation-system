@@ -1,5 +1,6 @@
 "use client";
 import {
+  forwardRef,
   InputHTMLAttributes,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
@@ -50,29 +51,12 @@ interface RadioGroupProps {
 }
 
 // function for the input field (text, email, phone, date and time)
-export function Input({ label, error, ...props }: InputProps) {
-  return (
-    <>
-      <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-700">{label}</label>
-        <input
-          className={`w-full rounded border p-2 focus:outline-none focus:ring ${
-            error ? "border-red-500" : "border-gray-300"
-          }`}
-          {...props}
-        />
-        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
-      </div>
-    </>
-  );
-}
-
-// function for the textarea/description/notes
-export function Textarea({ label, error, ...props }: TextAreaProps) {
-  return (
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, ...props }, ref) => (
     <div className="mb-4">
       <label className="block mb-1 font-medium text-gray-700">{label}</label>
-      <textarea
+      <input
+        ref={ref} // ✅ forward ref
         className={`w-full rounded border p-2 focus:outline-none focus:ring ${
           error ? "border-red-500" : "border-gray-300"
         }`}
@@ -80,21 +64,67 @@ export function Textarea({ label, error, ...props }: TextAreaProps) {
       />
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
-  );
-}
+  )
+);
+Input.displayName = "Input";
+// export function Input({ label, error, ...props }: InputProps) {
+
+//   return (
+//     <>
+//       <div className="mb-4">
+//         <label className="block mb-1 font-medium text-gray-700">{label}</label>
+//         <input
+//           className={`w-full rounded border p-2 focus:outline-none focus:ring ${
+//             error ? "border-red-500" : "border-gray-300"
+//           }`}
+//           {...props}
+//         />
+//         {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+//       </div>
+//     </>
+//   );
+// }
+
+// function for the textarea/description/notes
+export const Textarea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ label, error, ...props }, ref) => (
+    <div className="mb-4">
+      <label className="block mb-1 font-medium text-gray-700">{label}</label>
+      <textarea
+        ref={ref} // ✅ forward ref
+        className={`w-full rounded border p-2 focus:outline-none focus:ring ${
+          error ? "border-red-500" : "border-gray-300"
+        }`}
+        {...props}
+      />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+    </div>
+  )
+);
+Textarea.displayName = "Textarea";
+// export function Textarea({ label, error, ...props }: TextAreaProps) {
+//   return (
+//     <div className="mb-4">
+//       <label className="block mb-1 font-medium text-gray-700">{label}</label>
+//       <textarea
+//         className={`w-full rounded border p-2 focus:outline-none focus:ring ${
+//           error ? "border-red-500" : "border-gray-300"
+//         }`}
+//         {...props}
+//       />
+//       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+//     </div>
+//   );
+// }
 
 // function for the select input field
-export function Select({
-  label,
-  error,
-  options,
-  multiple,
-  ...props
-}: SelectProps) {
-  return (
+/* -------------------- Select -------------------- */
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
+  ({ label, error, options, multiple, ...props }, ref) => (
     <div className="mb-4">
       <label className="block mb-1 font-medium text-gray-700">{label}</label>
       <select
+        ref={ref} // ✅ forward ref
         multiple={multiple}
         className={`w-full rounded border p-2 focus:outline-none focus:ring ${
           error ? "border-red-500" : "border-gray-300"
@@ -110,8 +140,37 @@ export function Select({
       </select>
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
-  );
-}
+  )
+);
+Select.displayName = "Select";
+// export function Select({
+//   label,
+//   error,
+//   options,
+//   multiple,
+//   ...props
+// }: SelectProps) {
+//   return (
+//     <div className="mb-4">
+//       <label className="block mb-1 font-medium text-gray-700">{label}</label>
+//       <select
+//         multiple={multiple}
+//         className={`w-full rounded border p-2 focus:outline-none focus:ring ${
+//           error ? "border-red-500" : "border-gray-300"
+//         }`}
+//         {...props}
+//       >
+//         {!multiple && <option value="">Select an option</option>}
+//         {options.map((opt) => (
+//           <option key={opt.value} value={opt.value}>
+//             {opt.label}
+//           </option>
+//         ))}
+//       </select>
+//       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+//     </div>
+//   );
+// }
 
 // function for the check box group (dietary restrictions, additional services, beverage options, etc.
 export function CheckboxGroup({

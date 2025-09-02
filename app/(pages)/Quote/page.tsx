@@ -41,7 +41,7 @@ export default function Quote() {
   // Restore saved form values whenever formData or step changes
   useEffect(() => {
     reset(formData);
-  }, [formData, step, reset]);
+  }, [step, reset]);
 
   // Watch serviceType for dynamic rendering
   const serviceType = watch("serviceType");

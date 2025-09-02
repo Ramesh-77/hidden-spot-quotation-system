@@ -27,6 +27,21 @@ export default function Event({
         })}
         error={errors.eventType?.message}
       />
+      {/* Event Type (Controller since Select is custom) */}
+      {/* <Controller
+        name="eventType"
+        control={control}
+        rules={{ required: "Please select an event type" }}
+        render={({ field }) => (
+          <Select
+            label="Event Type"
+            options={eventTypes}
+            value={field.value || ""}
+            onChange={(e) => field.onChange(e.target.value)}
+            error={errors.eventType?.message}
+          />
+        )}
+      /> */}
 
       {/* Event Date */}
       <Input
