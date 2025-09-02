@@ -8,6 +8,7 @@ export default function Catering({
   register,
   errors,
   control,
+  watch
 }: EventCateringProps) {
   return (
     <>

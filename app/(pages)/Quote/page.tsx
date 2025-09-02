@@ -14,9 +14,9 @@ import {
   serviceTypeOptions,
 } from "@/app/middleware/MenuOptions";
 import { FormData } from "@/app/TSTypes/MenuInterface";
-import Event from "../event/page";
-import Catering from "../catering/page";
-import User from "../user/page";
+import Event from "../event/Event";
+import Catering from "../catering/Catering";
+import User from "../user/User";
 
 export default function Quote() {
   const {
