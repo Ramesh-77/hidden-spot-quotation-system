@@ -21,6 +21,7 @@ export interface FormData {
   numberOfGuests: number;
   eventDuration: number;
   beverageType: string[];
+  totalCost: number;
 
   // sevice form data
   mealType: string[];

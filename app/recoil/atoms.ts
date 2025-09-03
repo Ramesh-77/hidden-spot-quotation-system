@@ -21,6 +21,7 @@ export const quotationFormAtom = atom<FormData>({
     numberOfGuests: 1,
     eventDuration: 0,
     beverageType: [],
+    totalCost: 0,
 
     // service
     mealType: [],
