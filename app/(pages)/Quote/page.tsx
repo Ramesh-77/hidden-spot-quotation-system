@@ -21,6 +21,7 @@ import User from "../user/User";
 import { useRecoilState } from "recoil";
 import { currentStepAtom, quotationFormAtom } from "@/app/recoil/atoms";
 import { toAmPm } from "@/app/middleware/TimeHelper";
+import EventCateringCommonFields from "../commonFields/EventCateringCommonFields";
 
 export default function Quote() {
   const [step, setStep] = useRecoilState(currentStepAtom);
@@ -126,25 +127,63 @@ export default function Quote() {
           {/* service type */}
           {/* STEP 0: Choose service type */}
           {step === 0 && (
-            <Controller
-              name="serviceType"
-              control={control}
-              rules={{ required: "Please select a service type" }}
-              render={({ field, fieldState }) => (
-                <RadioGroup
-                  label="Service Type"
-                  options={serviceTypeOptions}
-                  selectedValue={field.value}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-          )}
-
-          {/* step 1: Event or catering */}
-          {step === 1 && (
             <>
+              <Controller
+                name="serviceType"
+                control={control}
+                rules={{ required: "Please select a service type" }}
+                render={({ field, fieldState }) => (
+                  <RadioGroup
+                    label="Service Type"
+                    options={serviceTypeOptions}
+                    selectedValue={field.value}
+                    onChange={(val) => {
+                      // if switching service type -> reset opposite fields
+                      if (val !== field.value) {
+                        if (val === "event") {
+                          reset({
+                            ...formData,
+                            serviceType: "event",
+                            // keep current date/time
+                            eventDate: watch("eventDate"),
+                            eventStartTime: watch("eventStartTime"),
+                            eventEndTime: watch("eventEndTime"),
+                            eventDuration: watch("eventDuration"),
+                            numberOfGuests: watch("numberOfGuests"),
+                            eventLocation: watch("eventLocation"),
+                            // clear catering specific fields
+                            cateringType: "",
+                            menuSelection: [],
+                            dietaryRestriction: [],
+                            serviceProvideType: "",
+                            setUpRequirement: [],
+                            addOns: [],
+                          });
+                        } else if (val === "catering") {
+                          reset({
+                            ...formData,
+                            serviceType: "catering",
+                            // keep current date/time
+                            eventDate: watch("eventDate"),
+                            eventStartTime: watch("eventStartTime"),
+                            eventEndTime: watch("eventEndTime"),
+                            eventDuration: watch("eventDuration"),
+                            numberOfGuests: watch("numberOfGuests"),
+                            eventLocation: watch("eventLocation"),
+                            // clear event specific fields
+                            eventType: "",
+                            beverageType: [],
+                          });
+                        }
+                      }
+                      field.onChange(val);
+                    }}
+                    // onChange={field.onChange}
+
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
               {/* render the dynamic fields for events */}
               {serviceType === "event" && (
                 // all the inputs related to event only
@@ -167,6 +206,37 @@ export default function Quote() {
             </>
           )}
 
+          {/* step 1: Event or catering */}
+          {step === 1 && (
+            <>
+              {/* render the dynamic fields for events */}
+              <EventCateringCommonFields
+                register={register}
+                control={control}
+                watch={watch}
+                errors={errors}
+              />
+              {/* {serviceType === "event" && (
+                // all the inputs related to event only
+                <Event
+                  register={register}
+                  errors={errors}
+                  watch={watch}
+                  control={control}
+                />
+              )}
+
+              {serviceType === "catering" && (
+                <Catering
+                  register={register}
+                  errors={errors}
+                  watch={watch}
+                  control={control}
+                />
+              )} */}
+            </>
+          )}
+
           {/* step 2: User details + other fields */}
           {step === 2 && (
             <>
@@ -181,7 +251,7 @@ export default function Quote() {
 
               {/* Start: Meal/Menu details */}
               {/* meal type */}
-              <Controller
+              {/* <Controller
                 name="mealType"
                 control={control}
                 render={({ field }) => (
@@ -198,7 +268,7 @@ export default function Quote() {
                     }}
                   />
                 )}
-              />
+              /> */}
               {/* End: Meal/Menu Details */}
 
               {/* estimated budget */}

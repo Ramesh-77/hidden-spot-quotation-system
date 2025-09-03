@@ -1,12 +1,17 @@
 "use client";
 
 import { Input, Select, CheckboxGroup } from "@/app/components/ui/Input";
-import { eventTypes, beverageTypeOptions } from "@/app/middleware/MenuOptions";
+import {
+  eventTypes,
+  beverageTypeOptions,
+  mealTypeOptions,
+  mealTimes,
+} from "@/app/middleware/MenuOptions";
 import { Controller } from "react-hook-form";
 import { EventCateringProps } from "@/app/TSTypes/EventCateringProps";
 import { getDurationInHours } from "@/app/middleware/TimeHelper";
 
-export default function Event({
+export default function EventCateringCommonFields({
   register,
   errors,
   watch,
@@ -19,17 +24,17 @@ export default function Event({
   return (
     <>
       {/* Event Type */}
-      <Select
+      {/* <Select
         label="Event Type"
         options={eventTypes}
         {...register("eventType", {
           required: "Please select an event type",
         })}
         error={errors.eventType?.message}
-      />
+      /> */}
 
       {/* Event Date */}
-      {/* <Input
+      <Input
         label="Event Date"
         type="date"
         // this will disable user to select past date
@@ -38,10 +43,10 @@ export default function Event({
           required: "Event date is required",
         })}
         error={errors.eventDate?.message}
-      /> */}
+      />
 
       {/* Event Time Fields */}
-      {/* {eventDate && (
+      {eventDate && (
         <>
           <Input
             label="Event Start Time"
@@ -87,17 +92,21 @@ export default function Event({
             error={errors.eventEndTime?.message}
           />
         </>
-      )} */}
+      )}
       {/* Calculated Duration */}
-      {/* {eventStartTime && eventEndTime && (
+      {eventStartTime && eventEndTime && (
         <p className="block mb-1 font-medium text-gray-700 text-sm">
           Total Duration:{" "}
-          <span><strong>{getDurationInHours(eventStartTime, eventEndTime)} hours</strong></span>
+          <span>
+            <strong>
+              {getDurationInHours(eventStartTime, eventEndTime)} hours
+            </strong>
+          </span>
         </p>
-      )} */}
+      )}
 
       {/* Number of Guests */}
-      {/* <Input
+      <Input
         label="Number of Guests"
         type="number"
         placeholder="100"
@@ -107,23 +116,47 @@ export default function Event({
           min: { value: 1, message: "At least 1 guest is required" },
         })}
         error={errors.numberOfGuests?.message}
-      /> */}
+      />
       {/* event location */}
-                    {/* <Input
-                      label="Event Location/Address"
-                      {...register("eventLocation", {
-                        required: "Event Location is required",
-                      })}
-                      error={errors.eventLocation?.message}
-                      type="text"
-                      placeholder="123 quotation street, city"
-                    />
-       */}
-
-      
+      <Input
+        label="Event Location/Address"
+        {...register("eventLocation", {
+          required: "Event Location is required",
+        })}
+        error={errors.eventLocation?.message}
+        type="text"
+        placeholder="123 quotation street, city"
+      />
+      {/* meal time */}
+      {/* meal times */}
+      <Select
+        label="Meal Time"
+        options={mealTimes}
+        {...register("mealTime", { required: "Select a meal time" })}
+        error={errors.mealTime?.message}
+      />
+      {/* meal type */}
+      <Controller
+        name="mealType"
+        control={control}
+        render={({ field }) => (
+          <CheckboxGroup
+            label="Meal Type"
+            options={mealTypeOptions}
+            selectedValues={field.value}
+            onChange={(val, checked) => {
+              field.onChange(
+                checked
+                  ? [...field.value, val]
+                  : field.value.filter((v) => v !== val)
+              );
+            }}
+          />
+        )}
+      />
 
       {/* Beverage Type */}
-      <Controller
+      {/* <Controller
         name="beverageType"
         control={control}
         render={({ field }) => (
@@ -139,7 +172,7 @@ export default function Event({
             }}
           />
         )}
-      />
+      /> */}
     </>
   );
 }
