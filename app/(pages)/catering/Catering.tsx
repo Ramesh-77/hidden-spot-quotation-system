@@ -1,15 +1,54 @@
 "use client";
 import { Controller } from "react-hook-form";
 import { EventCateringProps } from "@/app/TSTypes/EventCateringProps";
-import { CheckboxGroup, RadioGroup, Select } from "@/app/components/ui/Input";
-import { addOnOptions, cateringTypeOptions, dietaryRestrictionOptions, mealTimes, menuOptions, serviceProvideOptions, setupOptions } from "@/app/middleware/MenuOptions";
+import {
+  CheckboxGroup,
+  Input,
+  RadioGroup,
+  Select,
+} from "@/app/components/ui/Input";
+import {
+  addOnOptions,
+  cateringMenuOptions,
+  cateringTypeOptions,
+  dietaryRestrictionOptions,
+  mealTimes,
+  serviceProvideOptions,
+  setupOptions,
+} from "@/app/middleware/MenuOptions";
+import { MenuItemSelection } from "@/app/TSTypes/MenuInterface";
+import { useEffect } from "react";
 
 export default function Catering({
   register,
   errors,
   control,
-  watch
+  watch,
+  setValue,
 }: EventCateringProps) {
+  // watch for the menu selection and catering type for rendering dynamic form
+  const cateringType = watch("cateringType");
+  const menuSelection: MenuItemSelection[] = watch("menuSelection") || [];
+
+  // Reset menuSelection when catering type changes
+  useEffect(() => {
+    if (cateringType) {
+      setValue("menuSelection", []); // clear previous selection
+    }
+  }, [cateringType, setValue]);
+
+  const availableMenu = cateringType ? cateringMenuOptions[cateringType] : [];
+
+  const handleQuantityChange = (item: MenuItemSelection, qty: number) => {
+    const updated = [...menuSelection];
+    const index = updated.findIndex((m) => m.id === item.id);
+    if (index >= 0) {
+      updated[index] = { ...updated[index], quantity: qty };
+    } else {
+      updated.push({ ...item, quantity: qty });
+    }
+    setValue("menuSelection", updated);
+  };
   return (
     <>
       {/* catering type */}
@@ -21,25 +60,41 @@ export default function Catering({
         })}
         error={errors.cateringType?.message}
       />
-      {/* meal styles */}
-      <Controller
-        name="menuSelection"
-        control={control}
-        render={({ field }) => (
-          <CheckboxGroup
-            label="Menu Selection"
-            options={menuOptions}
-            selectedValues={field.value}
-            onChange={(val, checked) => {
-              field.onChange(
-                checked
-                  ? [...field.value, val]
-                  : field.value.filter((v) => v !== val)
-              );
-            }}
-          />
-        )}
-      />
+      {/* menu selection */}
+      {/* Dynamic Menu Options */}
+      {cateringType && (
+        <div className="mt-4">
+          <h3 className="font-semibold mb-2">Menu Selection</h3>
+          {availableMenu.map((item) => {
+            const selected = menuSelection.find((m) => m.id === item.id);
+            return (
+              <div
+                key={item.id}
+                className="flex justify-between items-center border p-2 rounded mb-2"
+              >
+                <div>
+                  <p>{item.label}</p>
+                  <p className="text-sm text-gray-500">
+                    ${item.price} {item.unit}
+                  </p>
+                </div>
+                <input
+                  type="number"
+                  min={0}
+                  value={selected?.quantity || 0}
+                  onChange={(e) =>
+                    handleQuantityChange(item, Number(e.target.value))
+                  }
+                  className="w-20 border rounded p-1"
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {/* menu selection */}
+
+      {/*  */}
       {/* dietary restriction */}
       <Controller
         name="dietaryRestriction"

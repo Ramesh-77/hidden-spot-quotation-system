@@ -1,3 +1,10 @@
+export interface MenuItemSelection {
+  id: string;        // unique identifier e.g. "buffet", "sandwichPlatter"
+  label: string;     // display label e.g. "Hot Buffet"
+  price: number;     // unit price
+  unit: string;      // "per person" | "per platter" | "per package"
+  quantity: number;  // number selected
+}
 export interface FormData {
   serviceType: "event" | "catering" | "";
   // client data
@@ -22,7 +29,8 @@ export interface FormData {
 
   // catering data
   cateringType: string;
-  menuSelection: string[];
+  // menuSelection: string[];
+  menuSelection: MenuItemSelection[]
   dietaryRestriction: string[];
   serviceProvideType: "delivery" | "onsite" | "fullService" | "";
   setUpRequirement: string[];

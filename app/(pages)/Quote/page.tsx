@@ -192,6 +192,7 @@ export default function Quote() {
                   errors={errors}
                   watch={watch}
                   control={control}
+                  setValue={setValue}
                 />
               )}
 
@@ -201,6 +202,7 @@ export default function Quote() {
                   errors={errors}
                   watch={watch}
                   control={control}
+                  setValue={setValue}
                 />
               )}
             </>
@@ -215,6 +217,7 @@ export default function Quote() {
                 control={control}
                 watch={watch}
                 errors={errors}
+                setValue={setValue}
               />
               {/* {serviceType === "event" && (
                 // all the inputs related to event only
@@ -246,6 +249,7 @@ export default function Quote() {
                 errors={errors}
                 watch={watch}
                 control={control}
+                setValue={setValue}
               />
               {/* end: client details like full name, email, phone */}
 
