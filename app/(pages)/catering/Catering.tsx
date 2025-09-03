@@ -56,44 +56,46 @@ export default function Catering({
       />
 
       {/* Menu selection */}
-      {cateringType && (
-        <div className="mt-4">
-          <label className="block font-medium mb-2">Menu Selection</label>
-          {availableMenus.length > 0 ? (
-            availableMenus.map((item) => (
+  {/* Menu selection */}
+{cateringType && (
+  <Controller
+    name="menuSelection"
+    control={control}
+    rules={{
+      validate: (value) =>
+        value && value.length > 0 ? true : "Please select at least one menu option",
+    }}
+    render={({ field, fieldState }) => (
+      <div className="mt-4">
+        <label className="block font-medium mb-2">Menu Selection</label>
+
+        {availableMenus.length > 0 ? (
+          availableMenus.map((item) => {
+            const selected = field.value.find(
+              (v: MenuItemSelection) => v.id === item.id
+            );
+            const isChecked = !!selected;
+
+            return (
               <div
                 key={item.id}
                 className="flex items-center justify-between border rounded p-2 mb-2"
               >
-                {/* Checkbox for menu item */}
-                <Controller
-                  name="menuSelection"
-                  control={control}
-                  render={({ field }) => {
-                    const isChecked = field.value.some(
-                      (v: MenuItemSelection) => v.id === item.id
-                    );
-
-                    return (
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            field.onChange([
-                              ...field.value,
-                              { ...item, quantity: 1 },
-                            ]);
-                          } else {
-                            field.onChange(
-                              field.value.filter(
-                                (v: MenuItemSelection) => v.id !== item.id
-                              )
-                            );
-                          }
-                        }}
-                      />
-                    );
+                {/* Checkbox */}
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      field.onChange([
+                        ...field.value,
+                        { ...item, quantity: 1 },
+                      ]);
+                    } else {
+                      field.onChange(
+                        field.value.filter((v: MenuItemSelection) => v.id !== item.id)
+                      );
+                    }
                   }}
                 />
 
@@ -105,43 +107,41 @@ export default function Catering({
                   </p>
                 </div>
 
-                {/* Quantity input (only if selected) */}
-                <Controller
-                  name="menuSelection"
-                  control={control}
-                  render={({ field }) => {
-                    const selected = field.value.find(
-                      (v: MenuItemSelection) => v.id === item.id
-                    );
-
-                    return selected ? (
-                      <Input
-                        label="Qty"
-                        type="number"
-                        min={1}
-                        value={selected.quantity}
-                        onChange={(e) => {
-                          const newQty = parseInt(e.target.value) || 1;
-                          const updated = field.value.map(
-                            (v: MenuItemSelection) =>
-                              v.id === item.id ? { ...v, quantity: newQty   } : v
-                          );
-                          field.onChange(updated);
-                        }}
-                        className="w-20 ml-4"
-                      />
-                    ) : (
-                      <></>
-                    );
-                  }}
-                />
+                {/* Quantity input */}
+                {isChecked && (
+                  <Input
+                    label="Qty"
+                    type="number"
+                    min={1}
+                    value={selected.quantity}
+                    onChange={(e) => {
+                      const newQty = parseInt(e.target.value) || 1;
+                      const updated = field.value.map((v: MenuItemSelection) =>
+                        v.id === item.id ? { ...v, quantity: newQty } : v
+                      );
+                      field.onChange(updated);
+                    }}
+                    className="w-20 ml-4"
+                  />
+                )}
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500">Please select a catering type.</p>
-          )}
-        </div>
-      )}
+            );
+          })
+        ) : (
+          <p className="text-gray-500">Please select a catering type.</p>
+        )}
+
+        {/* Error message */}
+        {fieldState.error && (
+          <p className="text-red-500 text-sm mt-2">
+            {fieldState.error.message}
+          </p>
+        )}
+      </div>
+    )}
+  />
+)}
+
 
       {/* Dietary restriction */}
       <Controller
