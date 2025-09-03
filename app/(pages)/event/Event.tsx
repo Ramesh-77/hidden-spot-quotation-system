@@ -2,9 +2,9 @@
 
 import { Input, Select, CheckboxGroup } from "@/app/components/ui/Input";
 import { eventTypes, beverageTypeOptions } from "@/app/middleware/MenuOptions";
-import { getDurationInHours } from "@/app/middleware/EventDuration";
 import { Controller } from "react-hook-form";
 import { EventCateringProps } from "@/app/TSTypes/EventCateringProps";
+import { getDurationInHours } from "@/app/middleware/TimeHelper";
 
 export default function Event({
   register,
@@ -27,26 +27,13 @@ export default function Event({
         })}
         error={errors.eventType?.message}
       />
-      {/* Event Type (Controller since Select is custom) */}
-      {/* <Controller
-        name="eventType"
-        control={control}
-        rules={{ required: "Please select an event type" }}
-        render={({ field }) => (
-          <Select
-            label="Event Type"
-            options={eventTypes}
-            value={field.value || ""}
-            onChange={(e) => field.onChange(e.target.value)}
-            error={errors.eventType?.message}
-          />
-        )}
-      /> */}
 
       {/* Event Date */}
       <Input
         label="Event Date"
         type="date"
+        // this will disable user to select past date
+        min={new Date().toISOString().split("T")[0]}
         {...register("eventDate", {
           required: "Event date is required",
         })}
@@ -59,8 +46,26 @@ export default function Event({
           <Input
             label="Event Start Time"
             type="time"
+            // disable past times if today date is selected
+            min={
+              eventDate === new Date().toISOString().split("T")[0]
+                ? new Date().toTimeString().slice(0, 5)
+                : undefined
+            }
             {...register("eventStartTime", {
               required: "Event start time is required",
+              validate: (value) => {
+                if (eventDate === new Date().toISOString().split("T")[0]) {
+                  const now = new Date();
+                  const [h, m] = value.split(":").map(Number);
+                  const selected = h * 60 + m;
+                  const current = now.getHours() * 60 + now.getMinutes();
+                  return (
+                    selected >= current || "Start time cannot be in the past"
+                  );
+                }
+                return true;
+              },
             })}
             error={errors.eventStartTime?.message}
           />
@@ -70,10 +75,25 @@ export default function Event({
             type="time"
             {...register("eventEndTime", {
               required: "Event end time is required",
+              // end time should not be earlier than the start time
+              validate: (value) => {
+                if (!eventStartTime) return true; // skip if start time not set yet
+                return (
+                  value >= eventStartTime ||
+                  "End time cannot be earlier than start time"
+                );
+              },
             })}
             error={errors.eventEndTime?.message}
           />
         </>
+      )}
+      {/* Calculated Duration */}
+      {eventStartTime && eventEndTime && (
+        <p className="block mb-1 font-medium text-gray-700 text-sm">
+          Total Duration:{" "}
+          <span><strong>{getDurationInHours(eventStartTime, eventEndTime)} hours</strong></span>
+        </p>
       )}
 
       {/* Number of Guests */}
@@ -81,20 +101,26 @@ export default function Event({
         label="Number of Guests"
         type="number"
         placeholder="100"
+        min={1} // stops user from going below 1
         {...register("numberOfGuests", {
           required: "Number of guests is required",
           min: { value: 1, message: "At least 1 guest is required" },
         })}
         error={errors.numberOfGuests?.message}
       />
+      {/* event location */}
+                    <Input
+                      label="Event Location/Address"
+                      {...register("eventLocation", {
+                        required: "Event Location is required",
+                      })}
+                      error={errors.eventLocation?.message}
+                      type="text"
+                      placeholder="123 quotation street, city"
+                    />
+      
 
-      {/* Calculated Duration */}
-      {eventStartTime && eventEndTime && (
-        <p className="block mb-1 font-medium text-gray-700">
-          Total Duration:{" "}
-          <span>{getDurationInHours(eventStartTime, eventEndTime)} hours</span>
-        </p>
-      )}
+      
 
       {/* Beverage Type */}
       <Controller

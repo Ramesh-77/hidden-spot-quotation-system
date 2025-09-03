@@ -9,7 +9,7 @@ export default function User({
 }: EventCateringProps) {
   return (
     <>
-      {/* full name input field */}
+      {/* full name input field */} 
       <Input
         label="Full Name"
         {...register("fullName", {

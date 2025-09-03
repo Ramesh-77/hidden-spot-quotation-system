@@ -20,6 +20,7 @@ import Catering from "../catering/Catering";
 import User from "../user/User";
 import { useRecoilState } from "recoil";
 import { currentStepAtom, quotationFormAtom } from "@/app/recoil/atoms";
+import { toAmPm } from "@/app/middleware/TimeHelper";
 
 export default function Quote() {
   const [step, setStep] = useRecoilState(currentStepAtom);
@@ -32,11 +33,10 @@ export default function Quote() {
     control,
     watch,
     setValue,
-    reset
+    reset,
   } = useForm<FormData>({
     defaultValues: formData,
   });
-
 
   // Restore saved form values whenever formData or step changes
   useEffect(() => {
@@ -50,40 +50,28 @@ export default function Quote() {
 
   // --- Save form data + move next ---
   const onNext = (data: FormData) => {
-    setFormData((prev)=>({...prev, ...data}));
+    setFormData((prev) => ({ ...prev, ...data }));
     setStep(step + 1);
   };
 
   // to go back to prev form
   const onBack = () => setStep(step - 1);
 
-  // --- Submit final form ---
-  // const handleFormDataSubmit: SubmitHandler<FormData> = async (formData) => {
-  //   try {
-  //     const res = await axios.post(
-  //       "http://localhost:3000/api/v1/quote",
-  //       formData
-  //     );
-  //     const pdfBase64 = res.data?.data?.pdfBase64;
-  //     if (pdfBase64) {
-  //       setPdfBase64(res.data?.data?.pdfBase64);
-  //       // console.log(res.data.data.pdfBase64);
-  //     } else {
-  //       console.warn("No PDF base64 returned from server.");
-  //     }
-  //   } catch (error) {
-  //     console.log("Failed to submit form:", error);
-  //   }
-  // };
   const handleFormDataSubmit = async (data: FormData) => {
-    setFormData((prev)=>({...prev, ...data}));
-    try {
-      const res = await axios.post("http://localhost:3000/api/v1/quote", data);
-      const pdf = res.data?.data?.pdfBase64;
-      if (pdf) setPdfBase64(pdf);
-    } catch (err) {
-      console.error("Failed to submit form", err);
-    }
+    const formattedData = {
+      ...data,
+      eventStartTime: toAmPm(data.eventStartTime),
+      eventEndTime: toAmPm(data.eventEndTime),
+    };
+    console.log("formattedData", formattedData);
+    setFormData((prev) => ({ ...prev, ...formattedData }));
+    // try {
+    //   const res = await axios.post("http://localhost:3000/api/v1/quote", data);
+    //   const pdf = res.data?.data?.pdfBase64;
+    //   if (pdf) setPdfBase64(pdf);
+    // } catch (err) {
+    //   console.error("Failed to submit form", err);
+    // }
   };
 
   // useeffect for event date, start time, and end time
@@ -99,7 +87,7 @@ export default function Quote() {
     setValue("eventEndTime", time);
   }, [setValue]);
 
-  console.log("step count: ", step)
+  // console.log("step count: ", step)
 
   // useeffect for calculating total duration when first component mounts
   useEffect(() => {
@@ -130,19 +118,6 @@ export default function Quote() {
 
   return (
     <>
-      {/* preview
-      {pdfBase64 && (
-        <div style={{ marginTop: "20px" }}>
-          <h2>PDF Preview:</h2>
-          <iframe
-            src={`data:application/pdf;base64,${pdfBase64}`}
-            width="100%"
-            height="600px"
-            title="PDF Preview"
-          />
-        </div>
-      )} */}
-
       <div>
         <form
           action=""
@@ -204,17 +179,6 @@ export default function Quote() {
               />
               {/* end: client details like full name, email, phone */}
 
-              {/* event location */}
-              <Input
-                label="Event Location/Address"
-                {...register("eventLocation", {
-                  required: "Event Location is required",
-                })}
-                error={errors.eventLocation?.message}
-                type="text"
-                placeholder="123 quotation street, city"
-              />
-
               {/* Start: Meal/Menu details */}
               {/* meal type */}
               <Controller
@@ -242,9 +206,10 @@ export default function Quote() {
                 label="Estimated Budget (optional)"
                 type="number"
                 placeholder="e.g. 5000"
+                min={1}
                 {...register("estimatedBudget", {
                   valueAsNumber: true,
-                  min: { value: 0, message: "Budget must be positive" },
+                  min: { value: 1, message: "Budget must be positive" },
                 })}
                 error={errors.estimatedBudget?.message}
               />
@@ -258,34 +223,51 @@ export default function Quote() {
                 error={errors.specialRequests?.message}
               />
               {/* form submit button */}
-              <Button
-                type="submit"
-                text="Send Quote"
-                size="medium"
-                variant="primary"
-              />
-              {/* Preview PDF button */}
-              <Button
-                variant="secondary"
-                text="Preview"
-                size="medium"
-                className="ms-5"
-                onClick={handlePreviewClick}
-              />
+              <div className="mt-4 flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Back"
+                  size="medium"
+                  onClick={onBack}
+                />
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    text="Send Quote"
+                    size="medium"
+                    variant="primary"
+                  />
+                  <Button
+                    variant="secondary"
+                    text="Preview"
+                    size="medium"
+                    onClick={handlePreviewClick}
+                  />
+                </div>
+              </div>
             </>
           )}
           {/* Navigation */}
-          <div className="mt-4 flex gap-2">
-            {step > 0 && (
-              <Button type="button"
-                variant="secondary"
-                text="Back" size="medium" onClick={onBack} />
-               
-            )}
-            {step < 2 && <Button type="submit"
+          {step < 2 && (
+            <div className="mt-4 flex gap-2">
+              {step > 0 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Back"
+                  size="medium"
+                  onClick={onBack}
+                />
+              )}
+              <Button
+                type="submit"
                 variant="primary"
-                text="Next" size="medium" />}
-          </div>
+                text="Next"
+                size="medium"
+              />
+            </div>
+          )}
         </form>
       </div>
     </>

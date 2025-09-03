@@ -3,7 +3,7 @@ import company_logo_white from "@/public/hslogo-white.png";
 
 export default function Header() {
   return (
-    <header className="w-full bg-black h-[8vh] flex items-center px-4">
+    <header className="w-full bg-black h-[10vh] flex items-center px-4">
       <nav className="flex items-center">
         <Image
           src={company_logo_white}
