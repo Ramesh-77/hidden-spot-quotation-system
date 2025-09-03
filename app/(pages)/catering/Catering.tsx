@@ -41,12 +41,12 @@ export default function Catering({
     setValue("totalCost", totalCost);
   }, [totalCost, setValue]);
 
-  // Reset menuSelection when cateringType changes
-  useEffect(() => {
-    if (cateringType) {
-      setValue("menuSelection", []); // clear previous selection
-    }
-  }, [cateringType, setValue]);
+  // // Reset menuSelection when cateringType changes
+  // useEffect(() => {
+  //   if (cateringType) {
+  //     setValue("menuSelection", []); // clear previous selection
+  //   }
+  // }, [cateringType, setValue]);
 
   //  Safe way with TypeScript
   const availableMenus: MenuItemSelection[] = cateringType
