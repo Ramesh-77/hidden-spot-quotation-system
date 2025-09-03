@@ -10,7 +10,7 @@ import {
 import {
   addOnOptions,
   cateringMenuOptions,
-  cateringTypeOptions,
+  cateringTypeOptions, // ✅ new simple select options
   dietaryRestrictionOptions,
   mealTimes,
   serviceProvideOptions,
@@ -26,76 +26,124 @@ export default function Catering({
   watch,
   setValue,
 }: EventCateringProps) {
-  // watch for the menu selection and catering type for rendering dynamic form
+  // watch for cateringType and menuSelection
   const cateringType = watch("cateringType");
   const menuSelection: MenuItemSelection[] = watch("menuSelection") || [];
 
-  // Reset menuSelection when catering type changes
+  // Reset menuSelection when cateringType changes
   useEffect(() => {
     if (cateringType) {
       setValue("menuSelection", []); // clear previous selection
     }
   }, [cateringType, setValue]);
 
-  const availableMenu = cateringType ? cateringMenuOptions[cateringType] : [];
+  //  Safe way with TypeScript
+  const availableMenus: MenuItemSelection[] = cateringType
+    ? cateringMenuOptions[cateringType as keyof typeof cateringMenuOptions] ||
+      []
+    : [];
 
-  const handleQuantityChange = (item: MenuItemSelection, qty: number) => {
-    const updated = [...menuSelection];
-    const index = updated.findIndex((m) => m.id === item.id);
-    if (index >= 0) {
-      updated[index] = { ...updated[index], quantity: qty };
-    } else {
-      updated.push({ ...item, quantity: qty });
-    }
-    setValue("menuSelection", updated);
-  };
   return (
     <>
-      {/* catering type */}
+      {/* Catering type */}
       <Select
         label="Catering Type"
-        options={cateringTypeOptions}
+        options={cateringTypeOptions} 
         {...register("cateringType", {
           required: "Select a catering type",
         })}
         error={errors.cateringType?.message}
       />
-      {/* menu selection */}
-      {/* Dynamic Menu Options */}
+
+      {/* Menu selection */}
       {cateringType && (
         <div className="mt-4">
-          <h3 className="font-semibold mb-2">Menu Selection</h3>
-          {availableMenu.map((item) => {
-            const selected = menuSelection.find((m) => m.id === item.id);
-            return (
+          <label className="block font-medium mb-2">Menu Selection</label>
+          {availableMenus.length > 0 ? (
+            availableMenus.map((item) => (
               <div
                 key={item.id}
-                className="flex justify-between items-center border p-2 rounded mb-2"
+                className="flex items-center justify-between border rounded p-2 mb-2"
               >
-                <div>
-                  <p>{item.label}</p>
-                  <p className="text-sm text-gray-500">
+                {/* Checkbox for menu item */}
+                <Controller
+                  name="menuSelection"
+                  control={control}
+                  render={({ field }) => {
+                    const isChecked = field.value.some(
+                      (v: MenuItemSelection) => v.id === item.id
+                    );
+
+                    return (
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            field.onChange([
+                              ...field.value,
+                              { ...item, quantity: 1 },
+                            ]);
+                          } else {
+                            field.onChange(
+                              field.value.filter(
+                                (v: MenuItemSelection) => v.id !== item.id
+                              )
+                            );
+                          }
+                        }}
+                      />
+                    );
+                  }}
+                />
+
+                {/* Item info */}
+                <div className="ml-2 flex-1">
+                  <p className="font-medium">{item.label}</p>
+                  <p className="text-sm text-gray-600">
                     ${item.price} {item.unit}
                   </p>
                 </div>
-                <input
-                  type="number"
-                  min={0}
-                  value={selected?.quantity || 0}
-                  onChange={(e) =>
-                    handleQuantityChange(item, Number(e.target.value))
-                  }
-                  className="w-20 border rounded p-1"
+
+                {/* Quantity input (only if selected) */}
+                <Controller
+                  name="menuSelection"
+                  control={control}
+                  render={({ field }) => {
+                    const selected = field.value.find(
+                      (v: MenuItemSelection) => v.id === item.id
+                    );
+
+                    return selected ? (
+                      <Input
+                        label="Qty"
+                        type="number"
+                        min={1}
+                        value={selected.quantity}
+                        onChange={(e) => {
+                          const newQty = parseInt(e.target.value) || 1;
+                          const updated = field.value.map(
+                            (v: MenuItemSelection) =>
+                              v.id === item.id ? { ...v, quantity: newQty   } : v
+                          );
+                          field.onChange(updated);
+                        }}
+                        className="w-20 ml-4"
+                      />
+                    ) : (
+                      <></>
+                    );
+                  }}
                 />
               </div>
-            );
-          })}
+            ))
+          ) : (
+            <p className="text-gray-500">Please select a catering type.</p>
+          )}
         </div>
       )}
-      {/* menu selection */}
 
-      {/*  */}
-      {/* dietary restriction */}
+      {/* Dietary restriction */}
       <Controller
         name="dietaryRestriction"
         control={control}
@@ -108,18 +156,18 @@ export default function Catering({
               field.onChange(
                 checked
                   ? [...field.value, val]
-                  : field.value.filter((v) => v !== val)
+                  : field.value.filter((v: string) => v !== val)
               );
             }}
           />
         )}
       />
 
-      {/* service provide options */}
+      {/* Service provide options */}
       <Controller
         name="serviceProvideType"
         control={control}
-        rules={{ required: "Please select a sevice provide option" }}
+        rules={{ required: "Please select a service provide option" }}
         render={({ field, fieldState }) => (
           <RadioGroup
             label="Service Provide Type"
@@ -130,7 +178,8 @@ export default function Catering({
           />
         )}
       />
-      {/* set up options options */}
+
+      {/* Set up options */}
       <Controller
         name="setUpRequirement"
         control={control}
@@ -143,14 +192,14 @@ export default function Catering({
               field.onChange(
                 checked
                   ? [...field.value, val]
-                  : field.value.filter((v) => v !== val)
+                  : field.value.filter((v: string) => v !== val)
               );
             }}
           />
         )}
       />
 
-      {/* meal times */}
+      {/* Meal times */}
       <Select
         label="Meal Time"
         options={mealTimes}
@@ -158,7 +207,7 @@ export default function Catering({
         error={errors.mealTime?.message}
       />
 
-      {/* for addons */}
+      {/* Add-ons */}
       <Controller
         name="addOns"
         control={control}
@@ -171,7 +220,7 @@ export default function Catering({
               field.onChange(
                 checked
                   ? [...field.value, val]
-                  : field.value.filter((v) => v !== val)
+                  : field.value.filter((v: string) => v !== val)
               );
             }}
           />
