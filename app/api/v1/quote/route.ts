@@ -6,6 +6,14 @@ import { z } from "zod";
 // resend api key
 // const resend = new Resend(process.env.RESEND_API_KEY)
 
+// shared schemas
+const menuItemSelectionSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  price: z.number(),
+  unit: z.string(),
+  quantity: z.number().min(1),
+});
 
 const baseSchema = z.object({
   serviceType: z.enum(["event", "catering"]),
@@ -15,8 +23,10 @@ const baseSchema = z.object({
   mealType: z.array(z.string()),
   estimatedBudget: z.number().optional(),
   specialRequests: z.string().optional(),
+  totalCost: z.number().default(0),
 });
 
+// event schema
 const eventSchema = baseSchema.extend({
   serviceType: z.literal("event"),
   eventDate: z.string(),
@@ -29,10 +39,11 @@ const eventSchema = baseSchema.extend({
   beverageType: z.array(z.string()),
 });
 
+// catering schema
 const cateringSchema = baseSchema.extend({
   serviceType: z.literal("catering"),
   cateringType: z.string(),
-  menuSelection: z.array(z.string()),
+  menuSelection: z.array(menuItemSelectionSchema), // ✅ aligned to MenuItemSelection[]
   dietaryRestriction: z.array(z.string()),
   serviceProvideType: z.enum(["delivery", "onsite", "fullService"]),
   setUpRequirement: z.array(z.string()),
@@ -40,6 +51,7 @@ const cateringSchema = baseSchema.extend({
   addOns: z.array(z.string()),
 });
 
+// union schema
 const fullQuoteSchema = z.discriminatedUnion("serviceType", [
   eventSchema,
   cateringSchema,

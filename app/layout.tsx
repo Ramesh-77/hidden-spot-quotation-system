@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
-import Header from "./(pages)/Header/Header";
-import Footer from "./(pages)/Footer/Footer";
 
 // Use Inter as your base font
 const inter = Inter({
@@ -26,12 +24,10 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased min-h-screen flex flex-col`}>
         {/* Recoil state accessible to all children */}
         <Providers>
-          <Header />
             {/* Main content grows to fill the remaining space */}
           <main className="flex-grow">
             {children}
           </main>
-          <Footer />
           </Providers>
       </body>
     </html>

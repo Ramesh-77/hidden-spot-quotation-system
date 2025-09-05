@@ -66,13 +66,16 @@ export default function Quote() {
     };
     console.log("formattedData", formattedData);
     setFormData((prev) => ({ ...prev, ...formattedData }));
-    // try {
-    //   const res = await axios.post("http://localhost:3000/api/v1/quote", data);
-    //   const pdf = res.data?.data?.pdfBase64;
-    //   if (pdf) setPdfBase64(pdf);
-    // } catch (err) {
-    //   console.error("Failed to submit form", err);
-    // }
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/v1/quote",
+        formattedData
+      );
+      const pdf = await res.data?.data?.pdfBase64;
+      if (pdf) setPdfBase64(pdf);
+    } catch (err) {
+      console.error("Failed to submit form", err);
+    }
   };
 
   // useeffect for event date, start time, and end time
