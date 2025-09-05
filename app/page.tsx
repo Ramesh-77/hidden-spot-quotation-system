@@ -9,7 +9,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}1
+      {/* Header */}
       <Header />
       {/* Main content grows to push footer down */}
       <main className="flex-grow">
