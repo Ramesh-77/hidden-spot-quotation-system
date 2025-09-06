@@ -1,10 +1,10 @@
 import { generateQuotePDF } from "@/app/lib/pdfGenerator";
 import { NextRequest, NextResponse } from "next/server";
-// import { Resend } from "resend";
+import { Resend } from "resend";
 import { z } from "zod";
 
 // resend api key
-// const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 // shared schemas
 const menuItemSelectionSchema = z.object({
@@ -60,63 +60,115 @@ const fullQuoteSchema = z.discriminatedUnion("serviceType", [
 
 type Body = z.infer<typeof fullQuoteSchema> //this will tell to typescript of bodyschema type
 export async function POST(req: NextRequest) {
-    try {
-        const body: Body = await req.json();
+  try {
+    const body: Body = await req.json();
 
-        const result = fullQuoteSchema.safeParse(body);
+    const result = fullQuoteSchema.safeParse(body);
 
-        if (!result.success) {
-            return NextResponse.json(
-                { error: result.error.issues },
-                { status: 400 }
-            );
-        }
-
-        const data: Body = result.data;
-        const pdfBytes = await generateQuotePDF(data)
-        const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
-
-        return NextResponse.json({
-            message: 'PDF preview generated',
-            data: {
-                pdfBase64,
-                data
-            },
-        });
-
-        // send email to service provider i.e., company/restaurant with pdf attached
-        // await resend.emails.send({
-        //     from: "Quote System <noreply@pathak1.online>",
-        //     to: "contact@pathak1.online",
-        //     subject: "New Quote Request",
-        //     html: `<p>You have received a new quote request from <strong>${fullName}</strong> (${email}).</p>`,
-        //     attachments: [
-        //         {
-        //             filename: "quote.pdf",
-        //             content: pdfBase64,
-        //             contentType: "application/pdf"
-        //         },
-        //     ],
-        // })
-
-        // // send acknowledgment email to client
-        // await resend.emails.send({
-        //     from: "Quote System <noreply@pathak1.online>",
-        //     to: email,
-        //     subject: "We Received Your Quote Request",
-        //     html: `<p>Hi ${fullName},<br/>Thanks for reaching out! We've received your request and will get back to you soon.</p>`,
-        // });
-        // return NextResponse.json({
-        //     message: "Form submitted successfully",
-        //     data: { fullName, email },
-        // });
-    } catch (error) {
-        console.error("Error in POST /api/quote", error);
-        return NextResponse.json(
-            { error: "Internal Server Error" },
-            { status: 500 }
-        );
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.issues },
+        { status: 400 }
+      );
     }
+
+    const data: Body = result.data;
+    const pdfBytes = await generateQuotePDF(data)
+    const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+
+    // return NextResponse.json({
+    //     message: 'PDF preview generated',
+    //     data: {
+    //         pdfBase64,
+    //         data
+    //     },
+    // });
+
+    // send email to service provider i.e., company/restaurant with pdf attached
+    // await resend.emails.send({
+    //     from: "Quote System <noreply@pathak1.online>",
+    //     to: "contact@pathak1.online",
+    //     subject: "New Quote Request",
+    //     html: `<p>You have received a new quote request from <strong>${fullName}</strong> (${email}).</p>`,
+    //     attachments: [
+    //         {
+    //             filename: "quote.pdf",
+    //             content: pdfBase64,
+    //             contentType: "application/pdf"
+    //         },
+    //     ],
+    // })
+    // --- Send email to service provider ---
+    await resend.emails.send({
+      from: "Quote System <noreply@yourdomain.com>",
+      to: "contact@yourdomain.com", // 📩 your company/restaurant email
+      subject: "New Quote Request",
+      html: `
+        <p>You have received a new quote request.</p>
+        <p><strong>Name:</strong> ${data.fullName}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>Phone:</strong> ${data.phone}</p>
+        <p><strong>Service Type:</strong> ${data.serviceType}</p>
+        <p><strong>Total Cost:</strong> $${data.totalCost.toFixed(2)}</p>
+      `,
+      attachments: [
+        {
+          filename: "quote.pdf",
+          content: pdfBase64,
+          contentType: "application/pdf",
+        },
+      ],
+    });
+    // --- Send acknowledgment email to client ---
+    await resend.emails.send({
+      from: "Quote System <noreply@yourdomain.com>",
+      to: data.email,
+      subject: "We Received Your Quote Request",
+      html: `
+        <p>Hi ${data.fullName},</p>
+        <p>Thanks for reaching out! We’ve received your request and will get back to you soon.</p>
+        <p>Here’s a copy of your quote for your records.</p>
+      `,
+      attachments: [
+        {
+          filename: "quote.pdf",
+          content: pdfBase64,
+          contentType: "application/pdf",
+        },
+      ],
+    });
+
+    // return NextResponse.json({
+    //     message: 'PDF preview generated',
+    //     data: {
+    //         pdfBase64,
+    //         data
+    //     },
+    // });
+    return NextResponse.json({
+      message: "Form submitted successfully. Emails sent.",
+      data,
+    });
+
+
+    // // send acknowledgment email to client
+    // await resend.emails.send({
+    //     from: "Quote System <noreply@pathak1.online>",
+    //     to: email,
+    //     subject: "We Received Your Quote Request",
+    //     html: `<p>Hi ${fullName},<br/>Thanks for reaching out! We've received your request and will get back to you soon.</p>`,
+    // });
+    // return NextResponse.json({
+    //     message: "Form submitted successfully",
+    //     data: { fullName, email },
+    // });
+  } catch (error) {
+    console.error("Error in POST /api/quote", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
 
